@@ -1,3 +1,4 @@
+```yaml
 name: CI-CD Pipeline
 
 on:
@@ -41,39 +42,36 @@ jobs:
       - name: Run Tests
         run: echo "my test case is passed."
 
-      #  OWASP Dependency Check (SCA)
-     # - name: Run OWASP Dependency Check
-       # uses: dependency-check/Dependency-Check_Action@main
-     #   with:
-       #   project: "zomato-app"
-        #  path: "."
-         # format: "SARIF"
-          #out: "reports"
-        #  args: >
-        #   --enableRetired
-        #   --enableExperimental
-         #   --failOnCVSS 7 */
+      # OWASP Dependency Check (SCA)
+      # - name: Run OWASP Dependency Check
+      #   uses: dependency-check/Dependency-Check_Action@main
+      #   with:
+      #     project: "zomato-app"
+      #     path: "."
+      #     format: "SARIF"
+      #     out: "reports"
+      #     args: >
+      #       --enableRetired
+      #       --enableExperimental
+      #       --failOnCVSS 7
 
-     # - name: Upload OWASP Report to GitHub Security
-     #  uses: github/codeql-action/upload-sarif@v3
-     #  with:
-    #     sarif_file: reports/dependency-check-report.sarif
+      # - name: Upload OWASP Report to GitHub Security
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: reports/dependency-check-report.sarif
 
-      #  Build Docker Image
+      # Build Docker Image
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME:${{ github.sha }} .
 
       - name: Tag Image
         run: docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
 
-      #  Install Trivy (Pinned version)
-      # ...
-      # ...
+      # Install Trivy
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
-      
-      #  Scan Filesystem
+      # Scan Filesystem
       - name: Run Trivy FS Scan
         uses: aquasecurity/trivy-action@v0.20.0
         with:
@@ -82,32 +80,34 @@ jobs:
           format: 'sarif'
           output: 'trivy-fs.sarif'
 
-      #  Scan Docker Image
+      # Scan Docker Image
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: '$IMAGE_NAME:latest'
-          format: 'table'
+          image-ref: '${{ env.IMAGE_NAME }}:latest'
+          format: 'sarif'
+          output: 'trivy-image.sarif'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy Results
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-image.sarif
 
-      #  Login Securely
+      # Login Securely
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      #  Push Image
+      # Push Image
       - name: Push Docker Image
         run: |
           docker push $IMAGE_NAME:${{ github.sha }}
           docker push $IMAGE_NAME:latest
-
+```
