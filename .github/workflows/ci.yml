@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - master
-on:
-  pull:
-    - deployment
-    - development
-ci-workflow:
 
 env:
   APP_PORT: 3000
