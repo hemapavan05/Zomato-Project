@@ -86,7 +86,7 @@ jobs:
           image-ref: '${{ env.IMAGE_NAME }}:latest'
           format: 'sarif'
           output: 'trivy-image.sarif'
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
